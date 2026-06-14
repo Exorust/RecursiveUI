@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recursiveui.dev/schema/genome-1.json",
+  "title": "RecursiveUI Layout Genome",
+  "description": "Typed layout + routing spec over the component catalog. The unit of adaptation; TSX is a render of this. See .plans/design-doc.md § Layout Genome.",
+  "type": "object",
+  "required": ["genomeVersion", "skill", "source", "tree", "slots", "routing"],
+  "additionalProperties": false,
+  "properties": {
+    "genomeVersion": { "const": "1" },
+    "skill": { "type": "string" },
+    "source": { "enum": ["generated", "evolved", "studio", "community"] },
+    "parentHash": { "type": "string" },
+    "locked": { "type": "boolean" },
+    "pinned": { "type": "boolean" },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accent": { "type": "string" },
+        "density": { "enum": ["compact", "comfortable"] },
+        "surface": { "type": "string" }
+      }
+    },
+    "tree": { "$ref": "#/definitions/layoutNode" },
+    "slots": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/slot" }
+    },
+    "routing": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/routingRule" }
+    }
+  },
+  "definitions": {
+    "layoutNode": {
+      "oneOf": [{ "$ref": "#/definitions/containerNode" }, { "$ref": "#/definitions/slotRef" }]
+    },
+    "containerNode": {
+      "type": "object",
+      "required": ["type", "children"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["split-h", "split-v", "stack", "tabs", "grid"] },
+        "sizes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/sizeSpec" }
+        },
+        "children": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/layoutNode" }
+        }
+      }
+    },
+    "slotRef": {
+      "type": "object",
+      "required": ["slot"],
+      "additionalProperties": false,
+      "properties": { "slot": { "type": "string" } }
+    },
+    "sizeSpec": {
+      "oneOf": [
+        { "type": "number" },
+        {
+          "type": "object",
+          "required": ["fixed"],
+          "additionalProperties": false,
+          "properties": { "fixed": { "type": "number" } }
+        },
+        {
+          "type": "object",
+          "required": ["hug"],
+          "additionalProperties": false,
+          "properties": { "hug": { "const": true } }
+        }
+      ]
+    },
+    "slot": {
+      "type": "object",
+      "required": ["component"],
+      "additionalProperties": false,
+      "properties": {
+        "component": { "type": "string" },
+        "role": { "enum": ["main", "complementary", "log", "navigation", "aside"] },
+        "params": { "type": "object" },
+        "source": { "type": "string" },
+        "defaultState": { "enum": ["expanded", "collapsed"] },
+        "visibleWhen": { "$ref": "#/definitions/condition" },
+        "expandWhen": { "$ref": "#/definitions/condition" },
+        "evolvable": { "type": "boolean" }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "slotReceived": { "type": "boolean" },
+        "toolRunning": { "type": "boolean" },
+        "sessionStatus": { "enum": ["idle", "running", "streaming", "done", "error"] },
+        "isEmpty": { "type": "string" }
+      }
+    },
+    "matchSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event": { "type": "string" },
+        "payloadClass": {
+          "enum": ["diff", "text", "tool_output", "plan", "question", "error", "thinking"]
+        },
+        "tool": { "type": "string" }
+      }
+    },
+    "routingRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "match": { "$ref": "#/definitions/matchSpec" },
+        "to": { "type": "string" },
+        "fallback": { "type": "string" }
+      }
+    }
+  }
+}

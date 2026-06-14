@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+target/
+**/gen/schemas/
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local Claude Code settings (machine-specific)
+.claude/
+
+# Internal planning docs, research dumps, and third-party reference material
+# (kept locally, not part of the public project)
+.plans/
+.research/
+.codex-research/
+research/

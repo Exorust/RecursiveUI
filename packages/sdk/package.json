@@ -1,0 +1,31 @@
+{
+  "name": "@recursiveui/sdk",
+  "version": "0.1.0",
+  "description": "SDK for building RecursiveUI skill UIs — hooks, components, and catalog",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "keywords": [
+    "recursiveui",
+    "recursiveui-sdk",
+    "agent-ui",
+    "pi-package"
+  ],
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19",
+    "@radix-ui/themes": "^3",
+    "@tauri-apps/api": "^2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "typescript": "~5.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
+}

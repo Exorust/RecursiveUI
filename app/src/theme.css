@@ -1,0 +1,24 @@
+/*
+ * Light-touch theme tuning. The look is driven by the Radix <Theme> props
+ * (jade accent, sage gray, solid panels, small radius — a terminal/IDE feel);
+ * here we only deepen the page base toward a near-black green and let Radix's
+ * sage panels layer above it.
+ */
+:root,
+.radix-themes {
+  --color-background: #070d0a; /* green-black base */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--color-background);
+}
+
+/* Spectacle: pulse while a card is generating / during scan. */
+@keyframes rekPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
