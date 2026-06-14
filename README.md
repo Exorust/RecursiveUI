@@ -1,107 +1,81 @@
 # RecursiveUI
 
-**Purpose-built, self-evolving UIs for AI agent skills.**
+**Interfaces that rewrite themselves.**
 
-RecursiveUI is a macOS menu-bar app that gives every AI agent skill its own
-native window with a UI generated *for that skill* — and then improves that UI
-over time based on how it actually gets used.
+Every AI agent skill — code review, deployment, research, monitoring — gets the same generic chat window. RecursiveUI generates a distinct, purpose-built UI for each skill, then continuously evolves it based on how you actually use it. No other tool closes this loop.
 
-Most agent tools render the same generic chat panel no matter what the agent is
-doing. A code review, a deployment, a research dig, and a design audit are very
-different tasks, and they deserve different surfaces. RecursiveUI generates a
-distinct layout per skill, renders it from real components, and evolves it.
-
-> Status: early and experimental. Built as a research project on top of
-> [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent) and Radix
-> Themes. Expect rough edges.
+> Early and experimental. Built on [Pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent) + Tauri + Radix Themes. Expect rough edges.
 
 ---
 
-## How it works
+## The idea
 
-Each skill's UI is produced through a typed pipeline rather than free-form code
-generation:
+Most "generative UI" systems generate **once**. Most adaptive UI research adapts **within a fixed design space**. Nobody lets the generator rewrite the design space itself from observed use. That's the gap.
+
+RecursiveUI sits at the intersection of three fields that haven't been combined before:
+
+| Field | What it solved | What RecursiveUI borrows |
+|---|---|---|
+| Generative UI (v0, AI SDK) | Produce UI from a prompt | Generation pipeline: skill definition → layout genome → compiled window |
+| Adaptive interfaces (SUPPLE, website morphing) | Reshape UI to fit a user | Counterfactual trace replay as an offline evaluator (no A/B traffic needed) |
+| LLM-driven evolution (FunSearch, AlphaEvolve) | Improve programs via LLM mutation + automatic evaluation | Every evolution is a registered, falsifiable hypothesis — confirmed or reverted |
+
+The critical constraint: **N=1.** Every adaptive system that worked (recommenders, A/B testing) had millions of users. RecursiveUI has one user and ~60 skills. The mechanisms we chose — within-subject time series, pairwise preference prompts, trace replay, and treating skills as a population where validated patterns become priors — are specifically selected to survive that translation. Details in [adaptation-design.md](.plans/adaptation-design.md).
+
+## How it works
 
 ```
 SKILL.md ─▶ manifest ─▶ Layout Genome (JSON IR) ─▶ TSX ─▶ compiled ESM ─▶ window
                               │                                    │
-                         validated                          git-versioned in
-                         + scored                            ~/.recursiveui
+                         validated                           git-versioned
+                         + scored                          (~/.recursiveui)
 ```
 
-1. **Discovery** classifies each skill (coding, ops, content, planning, …).
-2. **Generation** asks the model for a **Layout Genome** — a small typed JSON IR
-   describing a tree of `split` / `stack` / `tabs` / `grid` nodes, the
-   components bound to each slot, routing rules for where agent events land, and
-   design tokens (per-skill accent + density). The genome is *validated* before
-   anything renders.
-3. **Render + compile** turns the genome into TSX and compiles it with Bun's
-   transpiler. Generated code is import-free; it binds to the SDK component
-   catalog through a runtime kit (`window.__REK`).
-4. **Evolution** records how panels are used in a routing/telemetry ledger
-   (`bun:sqlite`), scores the layout, and mutates the genome — resizing, pruning
-   dead panels, or asking the model for a targeted fix — keeping every version
-   as a git commit in `~/.recursiveui`.
+1. **Discovery** scans your machine for skills (Claude Code, Pi, OpenClaw) and classifies each one.
+2. **Generation** produces a Layout Genome — a typed JSON IR describing layout tree, component bindings, event routing, and design tokens. Validated before anything renders.
+3. **Compilation** turns the genome into TSX, compiled import-free via Bun. Components bind through a runtime kit (`window.__REK`).
+4. **Evolution** records how panels are used, scores the layout against replayed action traces, and mutates the genome — every version a git commit in `~/.recursiveui`.
 
-A **Studio** window acts as a remote control: pick a skill, RecursiveUI opens
-that skill's UI in its own window, and edits you make in the Studio live-sync
-into the open window.
+A **Studio** window lets you chat-modify any skill's UI with live preview. Edits sync into the open skill window in real time.
 
 ## Architecture
 
 ```
 recursiveui/
-├── app/                  Tauri v2 desktop app
-│   ├── src/              React 19 + Vite frontend (tray UI, Studio, skill windows)
-│   ├── src-tauri/        Rust backend (tray, windows, IPC, sidecar supervision)
-│   └── sidecar/          Bun sidecar: discovery, genome, generation, evolution, telemetry
+├── app/                  Tauri v2 desktop app (macOS menu bar)
+│   ├── src/              React 19 + Vite frontend
+│   ├── src-tauri/        Rust backend (tray, windows, IPC)
+│   └── sidecar/          Bun sidecar (Pi sessions, generation, evolution)
 └── packages/
-    └── sdk/              @recursiveui/sdk — components, hooks, and the runtime kit
+    └── sdk/              @recursiveui/sdk — components, hooks, runtime kit
 ```
 
-- **Frontend** — React 19 + Vite, themed with [Radix Themes](https://www.radix-ui.com/).
-- **Backend** — Rust + Tauri v2: dynamic tray, one `WebviewWindow` per skill, IPC bridge.
-- **Sidecar** — a Bun process running Pi, which does generation and evolution.
+The SDK (`@recursiveui/sdk`) ships 20 components across 7 packs (core, coding, ops, data, research, design, layout) plus 6 hooks (`useSkill`, `useSession`, `useTelemetry`, `useEvolution`, `useModel`, `useSkillMeta`). The generation engine composes from this catalog; community authors import from it directly.
 
-## The SDK
+## For researchers
 
-`@recursiveui/sdk` is the component layer skill UIs are built from — a catalog of
-React components grouped into packs (core, coding, ops, data, research, design,
-layout) plus hooks that bridge a UI to the running skill:
+RecursiveUI is an open platform for studying questions at the HCI × AI boundary:
 
-- `useSkill`, `useSkillMeta`, `useSession`, `useTelemetry`, `useEvolution`, `useModel`
-- Components such as `AgentChat`, `DiffViewer`, `TerminalLog`, `TestResultsPanel`,
-  `DeploymentPipeline`, `HealthMonitor`, `QueryExplorer`, `ChartVisualization`,
-  `DocumentViewer`, and layout primitives (`SplitPane`, `TabGroup`).
+- **Malleable interfaces at runtime.** What are the right primitives when the UI itself adapts to agent behavior? (cf. Xia's malleable software, Gajos's SUPPLE)
+- **Single-user adaptation without A/B testing.** Can counterfactual trace replay + pairwise preference prompts replace population-scale experimentation?
+- **Evolution guardrails.** How do you prevent reward hacking in self-modifying interfaces? (KL-penalty analog: edit-distance budget against last user-approved version)
+- **Cross-skill transfer.** When a pattern validates on one skill ("user always expands terminal → auto-expand"), does it transfer to structurally similar skills?
 
-It's consumed as source inside this workspace during development and is intended
-to be published to npm so community skill UIs can install it.
+The adaptation mechanisms are documented in [adaptation-design.md](.plans/adaptation-design.md). The component catalog and generation prompt are in [components-spec.md](.plans/components-spec.md). We're actively looking for collaborators in adaptive interfaces, end-user AI interaction, and interactive ML — see [.outreach/](.outreach/).
 
-## Getting started
+## For builders
 
-**Prerequisites**
+RecursiveUI is also an ecosystem play. Every AI agent skill is a potential UI:
 
-- macOS
-- [Bun](https://bun.sh) (runs the sidecar)
-- [Rust](https://www.rust-lang.org/tools/install) + Xcode CLT (builds the Tauri app)
-- Node.js + npm (workspace tooling / Vite)
-- A Pi auth session at `~/.pi/agent/auth.json` (the sidecar uses your existing
-  Pi / Claude login to generate and evolve UIs)
+- **3,600+ Pi packages** on npm, each one a candidate for a generated or community-built interface.
+- **Community UIs** published to npm with the `recursiveui-ui` tag. Scaffold one with `npm create recursiveui-ui`.
+- **Installed UIs evolve independently** — the community version is the starting point, not the final form.
 
-**Run it**
+The full design doc, build plan, and marketing strategy are in [.plans/](.plans/).
 
-```bash
-# from the repo root
-npm install
+## Setup
 
-# launch the desktop app in dev mode
-cd app
-npm run tauri dev
-```
-
-The app installs into the macOS menu bar. Click the tray icon to browse skills;
-opening one generates (or loads) its UI in a dedicated window. Generated genomes,
-compiled bundles, and telemetry live under `~/.recursiveui`.
+See **[RUN_ME.md](./RUN_ME.md)** for prerequisites and instructions.
 
 ## License
 
