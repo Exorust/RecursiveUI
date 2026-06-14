@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RecursiveUI — paper figures</title>
+<style>
+  :root{
+    --ink:#19211d; --muted:#5d6b63; --line:#cfd8d3; --bg:#eef1f0; --card:#fff;
+    --jade:#1a7a5e; --jade-line:#1a7a5e; --jade-soft:#ecf5f1;
+    --blue:#2f6db0; --blue-soft:#eaf1f9;
+    --amber:#a9741a; --amber-soft:#f6efe0;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+       -webkit-font-smoothing:antialiased;padding:40px 24px}
+  .figure{width:1180px;margin:0 auto 48px;background:var(--card);
+          border:1px solid var(--line);border-radius:10px;padding:34px 38px 30px}
+  .figlabel{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+            color:var(--jade)}
+  .figtitle{font-size:20px;font-weight:650;margin:4px 0 22px;letter-spacing:-.01em}
+  .caption{font-size:13px;color:var(--muted);margin-top:20px;line-height:1.5;max-width:980px}
+  .caption b{color:var(--ink);font-weight:600}
+
+  /* ---- generic layout-box (used in fig2/fig3 render mockups) ---- */
+  .box{border:1.5px solid var(--line);border-radius:7px;background:#fcfdfd;
+       display:flex;flex-direction:column;justify-content:center;align-items:center;
+       text-align:center;padding:10px;gap:3px}
+  .box .cn{font-size:13.5px;font-weight:600}
+  .box .meta{font-size:11px;color:var(--muted)}
+  .box .slot{font-family:var(--mono);font-size:10.5px;padding:1px 6px;border-radius:20px;
+             border:1px solid currentColor}
+  .j .slot,.j .cn{color:var(--jade)} .j{border-color:var(--jade);background:var(--jade-soft)}
+  .b .slot,.b .cn{color:var(--blue)} .b{border-color:var(--blue);background:var(--blue-soft)}
+  .a .slot,.a .cn{color:var(--amber)} .a{border-color:var(--amber);background:var(--amber-soft)}
+
+  /* ---- fig2 ---- */
+  .f2{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:stretch}
+  .panelhead{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+             color:var(--muted);margin-bottom:10px}
+  pre.json{margin:0;font-family:var(--mono);font-size:12.5px;line-height:1.62;color:#33403a;
+           background:#f7faf9;border:1px solid var(--line);border-radius:8px;padding:16px 18px;
+           white-space:pre;overflow:hidden}
+  .json .k{color:#33403a}
+  .sc-j{color:var(--jade);font-weight:600} .sc-b{color:var(--blue);font-weight:600}
+  .sc-a{color:var(--amber);font-weight:600} .cm{color:#9aa8a1}
+  .render{display:flex;gap:10px;height:300px}
+  .render .col{display:flex;flex-direction:column;gap:10px}
+  .dataplane{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .dp-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+            color:var(--muted);margin-right:4px}
+  .chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:6px;
+        padding:4px 9px;background:#f7faf9;color:#33403a;white-space:nowrap}
+  .chip .arw{color:var(--muted);margin:0 2px}
+  .chip.to-j{border-color:var(--jade)} .chip.to-j b{color:var(--jade)}
+  .chip.to-b{border-color:var(--blue)} .chip.to-b b{color:var(--blue)}
+  .chip.to-a{border-color:var(--amber)} .chip.to-a b{color:var(--amber)}
+
+  /* ---- fig3 ---- */
+  .f3{display:flex;align-items:center;justify-content:center;gap:26px}
+  .mock{width:430px}
+  .mocklabel{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px;text-align:center}
+  .render3{display:flex;gap:9px;height:236px}
+  .badge{font-size:10.5px;font-family:var(--mono);color:var(--muted);margin-top:8px;text-align:center;line-height:1.45}
+  .grew{position:relative}
+  .grew::after{content:"+ grew";position:absolute;top:7px;right:8px;font:600 10px var(--mono);
+               color:var(--jade);background:var(--jade-soft);border:1px solid var(--jade);
+               border-radius:20px;padding:1px 7px}
+  .morphArrow{display:flex;flex-direction:column;align-items:center;color:var(--jade);gap:6px;min-width:108px}
+  .morphArrow .lab{font-size:12px;font-weight:600}
+  .morphArrow svg{display:block}
+  .morphArrow .sub{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+  .hl-amber-strong{background:var(--amber-soft)}
+</style>
+</head>
+<body>
+
+<!-- ============================ FIGURE 1 ============================ -->
+<section class="figure" id="fig1">
+  <div class="figlabel">Figure 1</div>
+  <div class="figtitle">The system as one closed loop</div>
+  <svg viewBox="0 0 1104 430" width="1104" height="430" font-family="ui-sans-serif,system-ui,sans-serif">
+    <defs>
+      <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#7d8b83"/>
+      </marker>
+      <marker id="aj" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#1a7a5e"/>
+      </marker>
+    </defs>
+
+    <!-- forward pipeline (gray) -->
+    <g>
+      <!-- boxes: x positions -->
+      <!-- source -->
+      <rect x="14" y="56" width="150" height="58" rx="7" fill="#fcfdfd" stroke="#cfd8d3" stroke-width="1.5"/>
+      <text x="89" y="80" text-anchor="middle" font-size="13.5" font-weight="600" fill="#19211d">SKILL.md /</text>
+      <text x="89" y="97" text-anchor="middle" font-size="13.5" font-weight="600" fill="#19211d">source spec</text>
+      <!-- manifest -->
+      <rect x="232" y="56" width="150" height="58" rx="7" fill="#fcfdfd" stroke="#cfd8d3" stroke-width="1.5"/>
+      <text x="307" y="90" text-anchor="middle" font-size="13.5" font-weight="600" fill="#19211d">manifest</text>
+      <!-- genome (emphasized) -->
+      <rect x="450" y="52" width="150" height="66" rx="7" fill="#ecf5f1" stroke="#1a7a5e" stroke-width="1.8"/>
+      <text x="525" y="80" text-anchor="middle" font-size="13.5" font-weight="700" fill="#13443a">layout genome</text>
+      <text x="525" y="97" text-anchor="middle" font-size="11" fill="#3f6d5f">the unit of adaptation</text>
+      <!-- render+compile -->
+      <rect x="668" y="56" width="150" height="58" rx="7" fill="#fcfdfd" stroke="#cfd8d3" stroke-width="1.5"/>
+      <text x="743" y="80" text-anchor="middle" font-size="13.5" font-weight="600" fill="#19211d">render +</text>
+      <text x="743" y="97" text-anchor="middle" font-size="13.5" font-weight="600" fill="#19211d">compile</text>
+      <!-- live window -->
+      <rect x="886" y="56" width="150" height="58" rx="7" fill="#fcfdfd" stroke="#cfd8d3" stroke-width="1.5"/>
+      <text x="961" y="90" text-anchor="middle" font-size="13.5" font-weight="600" fill="#19211d">live window</text>
+
+      <!-- forward arrows -->
+      <line x1="164" y1="85" x2="230" y2="85" stroke="#7d8b83" stroke-width="1.6" marker-end="url(#ag)"/>
+      <line x1="382" y1="85" x2="448" y2="85" stroke="#7d8b83" stroke-width="1.6" marker-end="url(#ag)"/>
+      <line x1="600" y1="85" x2="666" y2="85" stroke="#7d8b83" stroke-width="1.6" marker-end="url(#ag)"/>
+      <line x1="818" y1="85" x2="884" y2="85" stroke="#7d8b83" stroke-width="1.6" marker-end="url(#ag)"/>
+      <text x="540" y="34" text-anchor="middle" font-size="11.5" fill="#7d8b83" font-style="italic">generation pipeline (bootstrap, once)</text>
+    </g>
+
+    <!-- feedback loop (jade) -->
+    <g>
+      <!-- routing ledger (under live window) -->
+      <rect x="886" y="210" width="150" height="56" rx="7" fill="#f0f7f4" stroke="#1a7a5e" stroke-width="1.6"/>
+      <text x="961" y="243" text-anchor="middle" font-size="13" font-weight="650" fill="#13443a">routing ledger</text>
+      <!-- evolution loop (under genome / center) -->
+      <rect x="450" y="206" width="150" height="64" rx="7" fill="#f0f7f4" stroke="#1a7a5e" stroke-width="1.6"/>
+      <text x="525" y="234" text-anchor="middle" font-size="13" font-weight="650" fill="#13443a">evolution loop</text>
+      <text x="525" y="251" text-anchor="middle" font-size="10.5" fill="#3f6d5f">verdict→propose→ship</text>
+      <!-- pattern library -->
+      <rect x="450" y="338" width="150" height="56" rx="7" fill="#f0f7f4" stroke="#1a7a5e" stroke-width="1.6"/>
+      <text x="525" y="363" text-anchor="middle" font-size="13" font-weight="650" fill="#13443a">pattern library</text>
+      <text x="525" y="379" text-anchor="middle" font-size="10" fill="#3f6d5f">Beta confidence</text>
+
+      <!-- live window -> routing ledger (down) -->
+      <line x1="961" y1="114" x2="961" y2="208" stroke="#1a7a5e" stroke-width="1.6" marker-end="url(#aj)"/>
+      <text x="971" y="166" font-size="11" fill="#1a7a5e" font-style="italic">logs every event</text>
+      <!-- routing ledger -> evolution loop (left) -->
+      <line x1="884" y1="238" x2="602" y2="238" stroke="#1a7a5e" stroke-width="1.6" marker-end="url(#aj)"/>
+      <text x="743" y="230" text-anchor="middle" font-size="11" fill="#1a7a5e" font-style="italic">scorecard + trace replay</text>
+      <!-- evolution loop -> genome (up, closes loop) -->
+      <line x1="512" y1="206" x2="512" y2="120" stroke="#1a7a5e" stroke-width="1.8" marker-end="url(#aj)"/>
+      <text x="520" y="162" text-anchor="start" font-size="11" fill="#1a7a5e" font-style="italic">writes evolved genome</text>
+      <!-- evolution loop -> pattern library (down) -->
+      <line x1="525" y1="270" x2="525" y2="336" stroke="#1a7a5e" stroke-width="1.5" marker-end="url(#aj)"/>
+      <text x="535" y="308" font-size="10.5" fill="#1a7a5e" font-style="italic">confirmed moves</text>
+      <!-- pattern library -> genome (priors), up the clear left side -->
+      <path d="M450,366 H416 V96 H446" fill="none" stroke="#1a7a5e" stroke-width="1.5"
+            stroke-dasharray="5 4" marker-end="url(#aj)"/>
+      <text x="406" y="232" text-anchor="end" font-size="10.5" fill="#1a7a5e" font-style="italic">priors into generation</text>
+
+      <text x="525" y="423" text-anchor="middle" font-size="11.5" fill="#1a7a5e" font-style="italic">self-improvement loop (continuous)</text>
+    </g>
+  </svg>
+  <div class="caption"><b>The whole system at a glance.</b> A one-time generation
+  pipeline (gray) turns a skill spec into a layout genome that is rendered, compiled,
+  and shown. The live window then emits a routing ledger that drives the evolution
+  loop (jade), which writes a new genome (closing the loop) and accrues confirmed
+  moves into a pattern library that seeds future generation.</div>
+</section>
+
+<!-- ============================ FIGURE 2 ============================ -->
+<section class="figure" id="fig2">
+  <div class="figlabel">Figure 2</div>
+  <div class="figtitle">A genome and the interface it renders</div>
+  <div class="f2">
+    <div>
+      <div class="panelhead">layout genome (abridged JSON)</div>
+<pre class="json">{
+  <span class="k">"tree"</span>: { <span class="k">"split-h"</span>, sizes [32, 68]:
+      [ <span class="sc-j">chat</span>,
+        { <span class="k">"split-v"</span>, sizes [66, 34]:
+            [ <span class="sc-b">diff</span>, <span class="sc-a">findings</span> ] } ] },
+
+  <span class="k">"slots"</span>: {
+    <span class="sc-j">chat</span>:     AgentChat      <span class="cm">role: main</span>
+    <span class="sc-b">diff</span>:     DiffViewer     <span class="cm">mode: unified</span>
+    <span class="sc-a">findings</span>: FindingsPanel  <span class="cm">role: log</span> },
+
+  <span class="k">"routing"</span>: [
+    payloadClass <span class="sc-b">diff</span>        &#8594; <span class="sc-b">diff</span>
+    event <span class="cm">tool_execution_*</span>  &#8594; <span class="sc-a">findings</span>
+    payloadClass <span class="cm">text</span>        &#8594; <span class="sc-j">chat</span>
+    <span class="cm">fallback</span>                &#8594; <span class="sc-j">chat</span> ] }</pre>
+    </div>
+    <div>
+      <div class="panelhead">rendered layout (split-h 32 / 68)</div>
+      <div class="render">
+        <div class="box j" style="width:32%">
+          <span class="cn">AgentChat</span><span class="meta">role: main</span>
+          <span class="slot">slot: chat</span>
+        </div>
+        <div class="col" style="width:68%">
+          <div class="box b" style="height:66%">
+            <span class="cn">DiffViewer</span><span class="meta">mode: unified</span>
+            <span class="slot">slot: diff</span>
+          </div>
+          <div class="box a" style="height:34%">
+            <span class="cn">FindingsPanel</span><span class="meta">role: log</span>
+            <span class="slot">slot: findings</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dataplane">
+    <span class="dp-title">data plane (routing)</span>
+    <span class="chip to-b">payloadClass:diff<span class="arw">&#8594;</span><b>diff</b></span>
+    <span class="chip to-a">event:tool_execution_*<span class="arw">&#8594;</span><b>findings</b></span>
+    <span class="chip to-j">payloadClass:text<span class="arw">&#8594;</span><b>chat</b></span>
+    <span class="chip to-j">fallback<span class="arw">&#8594;</span><b>chat</b></span>
+  </div>
+  <div class="caption"><b>The interface is a function of the genome.</b> Slot ids
+  (color-coded) connect the JSON definition to the rendered panels; the routing
+  table is the data plane that decides where each incoming agent event is shown.
+  Mutation operates on this document, and telemetry attaches to the stable slot ids.</div>
+</section>
+
+<!-- ============================ FIGURE 3 ============================ -->
+<section class="figure" id="fig3">
+  <div class="figlabel">Figure 3</div>
+  <div class="figtitle">A ledger-driven morph, before &#8594; after</div>
+  <div class="f3">
+    <div class="mock">
+      <div class="mocklabel">before</div>
+      <div class="render3">
+        <div class="box j" style="width:32%"><span class="cn">AgentChat</span><span class="slot">chat</span></div>
+        <div class="col" style="width:68%">
+          <div class="box b" style="height:34%"><span class="cn">DiffViewer</span><span class="slot">diff</span></div>
+          <div class="box a" style="height:66%"><span class="cn">FindingsPanel</span><span class="slot">findings</span></div>
+        </div>
+      </div>
+      <div class="badge">diff carried <b style="color:#2f6db0">71%</b> of routed bytes<br>but held <b>34%</b> of its column &middot; 4 sessions</div>
+    </div>
+
+    <div class="morphArrow">
+      <span class="lab">resize morph</span>
+      <svg width="92" height="26" viewBox="0 0 92 26">
+        <defs><marker id="m3" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1a7a5e"/></marker></defs>
+        <line x1="2" y1="13" x2="80" y2="13" stroke="#1a7a5e" stroke-width="2" marker-end="url(#m3)"/>
+      </svg>
+      <span class="sub">deterministic</span>
+    </div>
+
+    <div class="mock">
+      <div class="mocklabel">after</div>
+      <div class="render3">
+        <div class="box j" style="width:32%"><span class="cn">AgentChat</span><span class="slot">chat</span></div>
+        <div class="col" style="width:68%">
+          <div class="box b grew" style="height:60%"><span class="cn">DiffViewer</span><span class="slot">diff</span></div>
+          <div class="box a" style="height:40%"><span class="cn">FindingsPanel</span><span class="slot">findings</span></div>
+        </div>
+      </div>
+      <div class="badge">diff grown to <b style="color:#1a7a5e">60%</b> of its column<br>to match its share of output</div>
+    </div>
+  </div>
+  <div class="caption"><b>Adaptation you can see.</b> The resize morph fires when a
+  slot carries a dominant share of routed output but holds a minority of the space.
+  It is computed entirely from the routing ledger, is a single reversible edit, and
+  ships under a hypothesis with <b>automatic rollback</b> if the change does not hold.</div>
+</section>
+
+</body>
+</html>
